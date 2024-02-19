@@ -24,7 +24,7 @@ struct Derived : Base
 };
 ```
 
-The reason for this is simple: `do_something` *is not a function*, it is a function template. Because the compiler operates on translation units (source files) independently of each other, there's no possible way for it to know which specializations of `print` need to be instantiated and included in the vtable of `Base` and `Derived`. Assume that these structs are declared in some header file `header.h`, then consider the following code:
+The reason for this is simple: `do_something` _is not a function_, it is a function template. Because the compiler operates on translation units (source files) independently of each other, there's no possible way for it to know which specializations of `print` need to be instantiated and included in the vtable of `Base` and `Derived`. Assume that these structs are declared in some header file `header.h`, then consider the following code:
 
 ```cpp
 // foo.h
@@ -109,12 +109,9 @@ int main()
 
 ## Where to start?
 
-If the compiler is unwilling to build a vtable for us, then we'll just have to do it ourselves. 
-
+If the compiler is unwilling to build a vtable for us, then we'll just have to do it ourselves.
 
 ![Image description](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/ca80m4w6fd23rnvd3xvc.jpg)
-
-
 
 But what should our vtable entries look like? I propose the following function signature:
 
@@ -137,6 +134,7 @@ void print(Args&&... args)
     m_vtable[vtableIndex](this, &argsTuple);
 }
 ```
+
 All of the arguments are combined into a `std::tuple` so that they can be passed into the vtable function via a single void pointer. `std::forward_as_tuple` is used to preserve the reference type of each argument. Of course, this still leaves three massive questions that need to be answered:
 
 1. Where are these vtable functions defined?
@@ -144,6 +142,7 @@ All of the arguments are combined into a `std::tuple` so that they can be passed
 3. How is the `m_vtable` member created?
 
 ## Defining the vtable functions
+
 To start off we'll implement the vtable functions we need.
 
 ```cpp
@@ -186,6 +185,7 @@ void run(Printer* printer, void* argsTuple)
 The need for separating the `Args` and `Derived` template parameters will become clear soon.
 
 ## Getting the vtable index
+
 So, we've written our vtable functions. On to the next challenge: how do we determine what index in the vtable corresponds to any particular specialization of `Printer::print`? After all, `Printer::print<int, double>` will need to have a different vtable entry than `Printer::print<double, int>` and we need to make sure that every specialization will end up calling the correct function.
 
 Enter stateful metaprogramming.
@@ -307,13 +307,14 @@ template <auto Unique = []{}, size_t N = 0>
 static consteval auto get()
 ```
 
-This actually works in practice (msvc, clang, and gcc all compile this as of 2/18/2024), but after some research I've found that the status of lambdas as non-type template parameters in C++20 and C++23 is a bit murky. Additionally it's not at all clear that the C++ standard would require this default template parameter to be re-evaluated at each call site. For example, a default template parameter of `auto Line = std::source_location::current().line()` will always be the line number of the template declaration, whereas an identical *default argument* will always be the line number of the call site. This suggests that a default template parameter is not required to behave as if it was explicitly provided at the call site. I want to avoid any sort of implementation defined behavior for the purpose of this post so I won't be using this trick.
+This actually works in practice (msvc, clang, and gcc all compile this as of 2/18/2024), but after some research I've found that the status of lambdas as non-type template parameters in C++20 and C++23 is a bit murky. Additionally it's not at all clear that the C++ standard would require this default template parameter to be re-evaluated at each call site. For example, a default template parameter of `auto Line = std::source_location::current().line()` will always be the line number of the template declaration, whereas an identical _default argument_ will always be the line number of the call site. This suggests that a default template parameter is not required to behave as if it was explicitly provided at the call site. I want to avoid any sort of implementation defined behavior for the purpose of this post so I won't be using this trick.
 
 ### Finishing the `Printer::print` implementation
+
 With the help of our `stateful_type_list` we can finally finish implementing `Printer::print`.
 
 ```cpp
-template <typename... Args, 
+template <typename... Args,
           size_t Index = stateful_type_list::try_push<vtable_func<Args...>>()>
 void print(Args&&... args)
 {
@@ -323,15 +324,16 @@ void print(Args&&... args)
 }
 ```
 
-`vtable_func<Args...>` is pushed into our `stateful_type_list` and the returned `Index` is used to lookup the corresponding function in the vtable. It's critically important that `Index` appears as a default template argument rather than being computed as part of the function body because this forces the compiler to compute the value of `Index` (and hence store `vtable_func<Args...>` in our stateful list) *at the call site* of Printer::print. The actual code generation of any particular specialization of `Printer::print` could happen at a later time in the compilation phase but we want our `vtable_func` pushed into our `stateful_type_list` ASAP.
+`vtable_func<Args...>` is pushed into our `stateful_type_list` and the returned `Index` is used to lookup the corresponding function in the vtable. It's critically important that `Index` appears as a default template argument rather than being computed as part of the function body because this forces the compiler to compute the value of `Index` (and hence store `vtable_func<Args...>` in our stateful list) _at the call site_ of Printer::print. The actual code generation of any particular specialization of `Printer::print` could happen at a later time in the compilation phase but we want our `vtable_func` pushed into our `stateful_type_list` ASAP.
 
 We've accomplished two out of our three goals. The last thing we need to do is initialize the `m_vtable` member of our `Printer` class.
 
 ## Creating the vtable
+
 In order to initialize our vtable we'll start by writing a function that is capable of creating it. It will be a static function template that exists within the `Printer` class.
 
 ```cpp
-template <typename Derived, typename... Funcs> 
+template <typename Derived, typename... Funcs>
 static auto create_vtable(type_list<Funcs...>)
 {
     static constinit std::array vtable { Funcs::template run<Derived>... };
@@ -339,10 +341,11 @@ static auto create_vtable(type_list<Funcs...>)
     return std::span{ vtable };
 }
 ```
+
 Let's break this down:
 
 1. The template parameter `Derived`, as in other cases, corresponds to the underlying type of the `Printer`.
-2. The parameter pack `Funcs...` will be our `vtable_func`s that we pushed into our `stateful_type_list` in the `Printer::print` implementation. 
+2. The parameter pack `Funcs...` will be our `vtable_func`s that we pushed into our `stateful_type_list` in the `Printer::print` implementation.
 3. The parameter of type `type_list<Funcs...>` is not named and not used. It exists so that the compiler can deduce the `Funcs...` parameter pack.
 4. We create a static `std::array` of vtable entries, using CTAD so that we don't need to write `std::array<void(*)(Printer*, void*), void*>, sizeof...(Funcs)>`.
 5. The `vtable` array is initialized with the function pointers `run<Derived>` for each `vtable_func` in `Funcs`. The `template` keyword is needed here to make the compiler happy.
@@ -371,6 +374,7 @@ PrinterImpl() :
 Whew! We did it!
 
 ### Does it work?
+
 After all that effort we'd like to know if our code works! Let's run the following code that I showed at the beginning of this post:
 
 ```cpp
@@ -437,7 +441,7 @@ You might think that we'd need a separate vtable for each of them, but as it tur
 
 ## Some notes about ODR
 
-C++ has something called the [One Definition Rule](https://en.cppreference.com/w/cpp/language/definition), which basically says that non-inline classes, functions, and variables can have exactly *one definition* throughout the entire program. Variables/functions marked `inline` and class/function templates can be defined more than once as long as each definition occurs in a different translation unit and **all definitions are identical**. Any violation of this rule results in the program being ill formed, and there is no guarantee that the compiler will issue any sort of error. Consider the following function declared in some file `f.h`:
+C++ has something called the [One Definition Rule](https://en.cppreference.com/w/cpp/language/definition), which basically says that non-inline classes, functions, and variables can have exactly _one definition_ throughout the entire program. Variables/functions marked `inline` and class/function templates can be defined more than once as long as each definition occurs in a different translation unit and **all definitions are identical**. Any violation of this rule results in the program being ill formed, and there is no guarantee that the compiler will issue any sort of error. Consider the following function declared in some file `f.h`:
 
 ```cpp
 template <typename T = ::Tag>
@@ -471,15 +475,15 @@ namespace
 
 Both `A.cpp` and `B.cpp` declare a struct `Tag` within an anonymous namespace prior to including `f.h`. This means that the two versions of `f` that end up being defined in our program will "see" different types as their default template parameter and therefore have different definitions. This violates the ODR rule and such a program is ill formed regardless of whether any existing compiler implementation is willing to compile it. What does this mean for us?
 
-I mentioned earlier that our code only works within a single source file. It should be fairly straightforward to understand the most obvious issue with putting our `Printer` class in a header file and attempting to use any given `Printer` instance across source files. A `PrinterImpl` object constructed in some file `A.cpp` will contain a vtable that is capable of handling only the specific specializations of `Printer::print` that are needed in that one file. Casting it to a `Printer*` and passing it to a function defined in some other source file `B.cpp` is a recipe for disaster. Unless both `A.cpp` and `B.cpp` use the exact same specializations of `Printer::print` *in the exact same order*, we're going to run into problems when `B.cpp` expects a different vtable than the one constructed in `A.cpp`.
+I mentioned earlier that our code only works within a single source file. It should be fairly straightforward to understand the most obvious issue with putting our `Printer` class in a header file and attempting to use any given `Printer` instance across source files. A `PrinterImpl` object constructed in some file `A.cpp` will contain a vtable that is capable of handling only the specific specializations of `Printer::print` that are needed in that one file. Casting it to a `Printer*` and passing it to a function defined in some other source file `B.cpp` is a recipe for disaster. Unless both `A.cpp` and `B.cpp` use the exact same specializations of `Printer::print` _in the exact same order_, we're going to run into problems when `B.cpp` expects a different vtable than the one constructed in `A.cpp`.
 
-We might think to remedy this issue by replacing our array based implementation of the vtable with a `std::unordered_map<std::type_index, void(*)(Printer*, void*)>`. In `Printer::print` we would no longer need to worry about the index returned from `stateful_type_list::try_push` and instead we could use `typeid(vtable_func<Args...>)` to lookup the correct function in the map. Likewise in `create_vtable` we would initialize this map with `{{ typeid(Funcs), Funcs::template run<Derived> }...}`. This would make it so that the order in which `Printer::print` specializations are used no longer matters, and would also allow us to detect when we've been given a `Printer` that isn't capable of handing a particular set of arguments. In `Printer::print` we could verify that the corresponding entry exists in the map before attempting to call the function and if it doesn't we can do something like throw an exception that could be handled by the caller. This should work great, right?
+We might think to remedy this issue by replacing our array based implementation of the vtable with a `std::unordered_map<std::type_index, void(*)(Printer*, void*)>`. In `Printer::print` we would no longer need to worry about the index returned from `stateful_type_list::try_push` and instead we could use `typeid(vtable_func<Args...>)` to lookup the correct function in the map. Likewise in `create_vtable` we would initialize this map with {% raw %} `{{ typeid(Funcs), Funcs::template run<Derived> }...}` {% endraw %}. This would make it so that the order in which `Printer::print` specializations are used no longer matters, and would also allow us to detect when we've been given a `Printer` that isn't capable of handing a particular set of arguments. In `Printer::print` we could verify that the corresponding entry exists in the map before attempting to call the function and if it doesn't we can do something like throw an exception that could be handled by the caller. This should work great, right?
 
 Wrong.
 
 I don’t know exactly what any particular compiler will do when given such a program, but I can show that such a program violates the ODR and is ill formed.
 
-Going back to the implementation details of `stateful_type_list` let's consider what happens when `print(5)` is called on some `Printer` object. Let's also assume that this is the first and only use of `Printer::print` within this source file. When `vtable_func<int>` is added to the stateful list it results in a declaration of `flag(getter<0>)` being instantiated by the compiler with a deduced return type of `type_list<vtable_func<int>>`. Later, this function is called by `get` in `stateful_type_list`. Friend functions exist at the *namespace scope* even if they are defined within a struct/class. That means that the compiler sees a free function named `flag` that accepts a parameter of type `getter<0>` and returns a `type_list<vtable_func<int>>`.
+Going back to the implementation details of `stateful_type_list` let's consider what happens when `print(5)` is called on some `Printer` object. Let's also assume that this is the first and only use of `Printer::print` within this source file. When `vtable_func<int>` is added to the stateful list it results in a declaration of `flag(getter<0>)` being instantiated by the compiler with a deduced return type of `type_list<vtable_func<int>>`. Later, this function is called by `get` in `stateful_type_list`. Friend functions exist at the _namespace scope_ even if they are defined within a struct/class. That means that the compiler sees a free function named `flag` that accepts a parameter of type `getter<0>` and returns a `type_list<vtable_func<int>>`.
 
 Now what happens if we do the same thing in another source file, but instead we call `print(5.0)`. Following the same logic as before, the result will be the declaration of a free function named `flag` that accepts a parameter of type `getter<0>` and returns a `type_list<vtable_func<double>>`. C++ functions cannot be overloaded solely on their return type, so this is in fact a conflicting definition of `flag(getter<0>)`. ODR is violated and the program is ill formed.
 
@@ -490,6 +494,5 @@ What can we conclude from all this? First of all it's plain to see that stateful
 Sadly, there is no way to make our virtual function templates safe to use across translation units.
 
 ...
-
 
 Or is there?
