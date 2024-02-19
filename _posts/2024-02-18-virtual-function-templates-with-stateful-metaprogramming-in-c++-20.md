@@ -404,9 +404,9 @@ The output of the program when compiled with gcc 13.2, clang 17.01, and msvc 19.
 Hello, world!
 ```
 
-I'll leave it as an exercise for the reader to verify that all the arguments have their reference types preserved when being passed through the vtable function and into `PrinterImpl::print`. You can play around with the code here: https://godbolt.org/z/jPbe3hnh4
+I'll leave it as an exercise for the reader to verify that all the arguments have their reference types preserved when being passed through the vtable function and into `PrinterImpl::print`. You can play around with the code here: [https://godbolt.org/z/jPbe3hnh4](https://godbolt.org/z/jPbe3hnh4)
 
-You can also find the code on my github: https://github.com/christiandaley/examples/blob/main/cpp/virtual_function_templates/main.cpp
+You can also find the code on my github: [https://github.com/christiandaley/examples/blob/main/cpp/virtual_function_templates/main.cpp](https://github.com/christiandaley/examples/blob/main/cpp/virtual_function_templates/main.cpp)
 
 To the best of my knowledge, the code shown here is well formed and does not contain any undefined or implementation defined behavior. That being said, I am not an expert when it comes to the C++ standard so it's entirely possible that I'm wrong about that, and if I am I would love if someone was able to point that out. **Regardless, this code should be seen as a curiosity and a learning experience and I absolutely do not recommend using this in any production code.**
 
