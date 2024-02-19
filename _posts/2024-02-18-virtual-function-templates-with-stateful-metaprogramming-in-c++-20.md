@@ -194,9 +194,9 @@ Enter stateful metaprogramming.
 
 I could write multiple posts entirely about how stateful metaprogramming works, but there are already quite a few such articles scattered across the internet. If you're not already familiar with stateful metaprogramming I suggest you start by reading these excellent articles:
 
-1. https://mc-deltat.github.io/articles/stateful-metaprogramming-cpp20
-2. https://b.atch.se/posts/constexpr-counter/
-3. https://b.atch.se/posts/constexpr-meta-container/
+1. [https://mc-deltat.github.io/articles/stateful-metaprogramming-cpp20](https://mc-deltat.github.io/articles/stateful-metaprogramming-cpp20)
+2. [https://b.atch.se/posts/constexpr-counter/](https://b.atch.se/posts/constexpr-counter/)
+3. [https://b.atch.se/posts/constexpr-meta-container/](https://b.atch.se/posts/constexpr-meta-container/)
 
 With that said, I'd like to introduce a very simple `type_list` implementation:
 
