@@ -251,6 +251,8 @@ private:
         static constexpr size_t value = N;
     };
 
+public:
+
     template <typename T, size_t N = 0>
     consteval static size_t try_push()
     {
@@ -264,7 +266,6 @@ private:
         }
     }
 
-public:
     template <typename Unique, size_t N = 0>
     consteval static auto get()
     {
