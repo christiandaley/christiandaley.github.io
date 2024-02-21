@@ -287,7 +287,7 @@ View it on my github: [https://github.com/christiandaley/examples/blob/main/cpp/
 
 ## Final remarks
 
-Although it may have sounded like a difficult problem at the beginning, supporting an arbitrary number of virtual function templates and different return types is actually quite straightforward. The amount of new code we added was pretty small and the only new type introduced was the `Function` enum.
+We've seen that supporting an arbitrary number of virtual function templates and different return types is actually quite straightforward. The amount of new code we added was pretty small and the only new type introduced was the `Function` enum.
 
 It should be noted that our existing implementation does not support returning reference types because `std::optional` cannot contain a reference. This limitation is easily overcome by having an additional `if constexpr` case in `run_impl` to handle this case and using a raw pointer instead of a `std::optional` to temporarily store the return value. The implementation of this is left as an exercise for the reader.
 
