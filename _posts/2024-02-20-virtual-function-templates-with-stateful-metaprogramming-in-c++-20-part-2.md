@@ -118,7 +118,7 @@ enum class Function
 `vtable_func` will take a `Function` as a non-type template parameter in addition to the `Ts` parameter pack.
 
 ```cpp
- template <Function F, typename... Ts>
+template <Function F, typename... Ts>
 struct vtable_func
 ```
 
