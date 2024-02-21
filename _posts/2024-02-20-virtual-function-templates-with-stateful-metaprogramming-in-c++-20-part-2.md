@@ -29,7 +29,7 @@ struct vtable_func
 };
 ```
 
-Right now it's limited to calling the `print` function on the target object, but with some re-arranging we can make it a bit more general. To start off we're going to rename the template parameter pack on`vtable_func` from `Args` to a more generic name `Ts`. The reason is because `Ts` is now going to represent the types of the template arguments for whatever function we're calling, and those are not necessarily the same thing as the types of the arguments to the function. For example:
+Right now it's limited to calling the `print` function on the target object, but with some straightfoward changes we can make it able to call any member function. To start off we're going to rename the template parameter pack on`vtable_func` from `Args` to a more generic name `Ts`. The reason is because `Ts` is now going to represent the types of the template arguments for whatever function we're calling, and those are not necessarily the same thing as the types of the arguments to the function. For example:
 
 ```cpp
 template <typename... Ts>
