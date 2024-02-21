@@ -243,7 +243,7 @@ static void run_impl(R(Derived::* func)(Args...), Printer* printer, void* argsTu
 }
 ```
 
-`Printer::print` and `Printer::print_to_stream` will be updated to pass a `nullptr` as the `ret` argument to the vtable function. This is safe because both of these functions return `void` so `vtable_func::run_impl` won't attempt to use the pointer. `Printer::print_to_string` is implemnted like so:
+`Printer::print` and `Printer::print_to_stream` will be updated to pass a `nullptr` as the `ret` argument to the vtable function. This is safe because both of these functions return `void` so `vtable_func::run_impl` won't attempt to use the pointer. `Printer::print_to_string` is implemented like so:
 
 ```cpp
 template <typename... Args,
