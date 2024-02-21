@@ -4,7 +4,7 @@ title: "Virtual function templates with stateful metaprogramming in C++ 20: Part
 date: 2024-02-20
 ---
 
-In [part 1](_posts/2024-02-18-virtual-function-templates-with-stateful-metaprogramming-in-c++-20.md) of this series we learned how to implement a virtual function template with a variadic parameter pack. In this post we're going to expand on our code to allow for an arbitrary number of virtual function templates with different return types. And we'll do it all with one single vtable!
+In [part 1](2024-02-18-virtual-function-templates-with-stateful-metaprogramming-in-c++-20.md) of this series we learned how to implement a virtual function template with a variadic parameter pack. In this post we're going to expand on our code to allow for an arbitrary number of virtual function templates with different return types. And we'll do it all with one single vtable!
 
 ## Generalizing the vtable functions
 
@@ -293,4 +293,4 @@ It should be noted that our existing implementation does not support returning r
 
 ## What's next?
 
-At the end of part one of this series I mentioned that these virtual function templates are unsafe to use across translation units because of ODR violations that result from stateful metaprogramming. I also teased that it may be possible to get around this limitation, and in part 3 that's exactly what we'll do.
+At the end of part one I mentioned that these virtual function templates are unsafe to use across translation units because of ODR violations that result from stateful metaprogramming. I also teased that it may be possible to get around this limitation, and in part 3 that's exactly what we'll do.
