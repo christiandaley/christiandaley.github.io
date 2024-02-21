@@ -176,9 +176,9 @@ p->print_to_stream(std::cerr, 5, d, s);
 The output prints to `cerr` like we expect.
 
 ```
-<span style="color:red">5</span>
-<span style="color:red">2.5</span>
-<span style="color:red">Hello, world!</span>
+5
+2.5
+Hello, world!
 ```
 
 Any number of virtual function templates can be supported by adding a new `Function` case and using it accodingly.
