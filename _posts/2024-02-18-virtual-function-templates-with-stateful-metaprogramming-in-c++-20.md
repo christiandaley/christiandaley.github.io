@@ -1,4 +1,5 @@
 ---
+layout: post
 title: "Virtual function templates with stateful metaprogramming in C++ 20"
 date: 2024-02-18
 ---
