@@ -3,7 +3,7 @@ title: "Virtual function templates with stateful metaprogramming in C++ 20: Part
 date: 2024-02-20
 ---
 
-In [part 1](2024-02-18-virtual-function-templates-with-stateful-metaprogramming-in-c++-20.md) of this series we learned how to implement a virtual function template with a variadic parameter pack. In this post we're going to expand on our code to allow for an arbitrary number of virtual function templates with different return types. And we'll do it all with one single vtable!
+In [part 1]({% post_url 2024-02-18-virtual-function-templates-with-stateful-metaprogramming-in-c++-20 %}) of this series we learned how to implement a virtual function template with a variadic parameter pack. In this post we're going to expand on our code to allow for an arbitrary number of virtual function templates with different return types. And we'll do it all with one single vtable!
 
 ## Generalizing the vtable functions
 
