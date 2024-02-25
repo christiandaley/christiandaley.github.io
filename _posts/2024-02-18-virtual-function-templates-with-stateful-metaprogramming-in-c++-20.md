@@ -348,7 +348,7 @@ Let's break this down:
 1. The template parameter `Derived`, as in other cases, corresponds to the underlying type of the `Printer`.
 2. The parameter pack `Funcs...` will be our `vtable_func`s that we pushed into our `stateful_type_list` in the `Printer::print` implementation.
 3. The parameter of type `type_list<Funcs...>` is not named and not used. It exists so that the compiler can deduce the `Funcs...` parameter pack.
-4. We create a static `std::array` of vtable entries, using CTAD so that we don't need to write `std::array<void(*)(Printer*, void*), void*>, sizeof...(Funcs)>`.
+4. We create a static `std::array` of vtable entries, using CTAD so that we don't need to write `std::array<void(*)(Printer*, void*)>, sizeof...(Funcs)>`.
 5. The `vtable` array is initialized with the function pointers `run<Derived>` for each `vtable_func` in `Funcs`. The `template` keyword is needed here to make the compiler happy.
 6. We return a `std::span` that points to the array. This is safe because the array is static and will exist for the duration of the program.
 
